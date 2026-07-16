@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Diplomas Anulados (Auditoría)</h2>
+    <a href="{{ url_for('diplomas.generar') }}" class="btn btn-secondary">Volver</a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Consecutivo</th>
+                    <th>Alumno</th>
+                    <th>Fecha Emisión</th>
+                    <th>Motivo de Anulación</th>
+                    <th>Anulado por</th>
+                    <th>Fecha Anulación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in anulados %}
+                <tr class="table-danger">
+                    <td><strong>{{ item.consecutivo }}</strong></td>
+                    <td>{{ item.nombre_alumno }}</td>
+                    <td>{{ item.fecha_emision }}</td>
+                    <td>{{ item.motivo }}</td>
+                    <td>{{ item.username }}</td>
+                    <td>{{ item.fecha_anulacion }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">No hay diplomas anulados.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

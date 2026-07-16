@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>📋 Bitácora Completa de Auditoría</h2>
+    <a href="{{ url_for('reportes.dashboard') }}" class="btn btn-secondary">Volver al Dashboard</a>
+</div>
+
+<div class="card shadow">
+    <div class="card-body">
+        <table id="tablaAuditoria" class="table table-striped table-hover" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Consecutivo</th>
+                    <th>Alumno</th>
+                    <th>Detalle / Motivo</th>
+                    <th>Usuario</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in movimientos %}
+                <tr>
+                    <td>{{ mov.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td>
+                        {% if mov.tipo == 'ANULACIÓN' %}
+                            <span class="badge bg-danger">ANULACIÓN</span>
+                        {% else %}
+                            <span class="badge bg-info">EDICIÓN</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ mov.consecutivo }}</strong></td>
+                    <td>{{ mov.nombre_alumno }}</td>
+                    <td>{{ mov.detalle }}</td>
+                    <td>{{ mov.username }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    $('#tablaAuditoria').DataTable({
+        order: [[0, 'desc']],
+        language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" }
+    });
+});
+</script>
+{% endblock %}

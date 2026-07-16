@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Encabezado -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h2 class="card-title mb-4">📊 Carga Masiva de Diplomas</h2>
+        
+        <div class="row g-3">
+            <div class="col-md-4">
+                <a href="{{ url_for('diplomas.descargar_plantilla') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-download"></i> Descargar Plantilla
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('diplomas.generar') }}" class="btn btn-secondary w-100">
+                    <i class="bi bi-arrow-left"></i> Volver
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ url_for('diplomas.activos') }}" class="btn btn-info w-100 text-white">
+                    <i class="bi bi-table"></i> Ver Diplomas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Instrucciones -->
+<div class="alert alert-info shadow-sm">
+    <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Instrucciones:</h5>
+    <ol class="mb-0">
+        <li>Descarga la plantilla de Excel (botón arriba)</li>
+        <li>Completa solo la columna <code>nombre_alumno</code> (una fila por alumno)</li>
+        <li>Selecciona el programa académico</li>
+        <li>Sube el archivo completado</li>
+        <li><strong>¡Listo!</strong> Los diplomas se crearán y descargarán automáticamente</li>
+    </ol>
+    <hr class="my-2">
+    <small class="text-muted">
+        ℹ️ Los créditos, duración y fecha de emisión se tomarán automáticamente del programa seleccionado.
+        Los QRs se generarán en memoria y se descargarán inmediatamente.
+    </small>
+</div>
+
+<!-- Formulario de Carga -->
+<div class="card shadow">
+    <div class="card-body">
+        <h4 class="card-title mb-4">📤 Subir archivo Excel</h4>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Programa Académico</label>
+                    <select name="programa_id" class="form-select form-select-lg" required>
+                        <option value="">-- Seleccionar --</option>
+                        {% for prog in programas %}
+                        <option value="{{ prog.id }}">
+                            {{ prog.nombre }} ({{ prog.creditos }} / {{ prog.duracion }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Archivo Excel (.xlsx o .xls)</label>
+                    <input type="file" name="archivo_excel" class="form-control form-control-lg" accept=".xlsx,.xls" required>
+                    <div class="form-text">Solo se necesita la columna: <code>nombre_alumno</code></div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-cloud-upload"></i> Procesar y Descargar Diplomas
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

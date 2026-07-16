@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"> Dashboard General - Año {{ año_actual }}</h2>
+
+<!-- Tarjetas de Resumen -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Diplomas Activos</h5>
+                <h2 class="display-4">{{ total_activos }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-danger mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Diplomas Anulados</h5>
+                <h2 class="display-4">{{ total_anulados }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Programas Activos</h5>
+                <h2 class="display-4">{{ total_programas }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Emisiones por Programa -->
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Diplomas Emitidos por Programa ({{ año_actual }})</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Programa</th>
+                            <th>Abreviatura</th>
+                            <th class="text-end">Total Emitidos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in emisiones_anio %}
+                        <tr>
+                            <td>{{ item.nombre }}</td>
+                            <td><span class="badge bg-secondary">{{ item.abreviatura }}</span></td>
+                            <td class="text-end"><strong>{{ item.total }}</strong></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted">No hay emisiones registradas este año.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auditoría Reciente (SOLO para auditores) -->
+    {% if current_user.rol == 'auditor' %}
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">Últimos Movimientos</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for mov in auditoria_reciente %}
+                    <li class="list-group-item">
+                        <small class="text-muted">{{ mov.fecha_modificacion.strftime('%d/%m %H:%M') }}</small><br>
+                        <strong>{{ mov.consecutivo }}</strong><br>
+                        <span class="badge bg-info">{{ mov.campo_modificado }}</span><br>
+                        <small>{{ mov.valor_anterior }} → {{ mov.valor_nuevo }}</small><br>
+                        <small class="text-muted">Por: {{ mov.username }}</small>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">Sin movimientos recientes.</li>
+                    {% endfor %}
+                </ul>
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('reportes.auditoria_completa') }}" class="btn btn-sm btn-outline-primary">Ver Auditoría Completa</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

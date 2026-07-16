@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SamuCert</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('reportes.dashboard') }}">SamuCert</a>
+            {% if current_user.is_authenticated %}
+                <div class="d-flex align-items-center">
+                    <!-- ADMIN: Acceso total -->
+                    {% if current_user.rol == 'admin' %}
+                        <a href="{{ url_for('reportes.dashboard') }}" class="btn btn-outline-light btn-sm me-2"> Dashboard</a>
+                        <a href="{{ url_for('diplomas.activos') }}" class="btn btn-outline-light btn-sm me-2"> Diplomas</a>
+                        <a href="{{ url_for('admin.programas') }}" class="btn btn-outline-light btn-sm me-2">📚 Programas</a>
+                    
+                    <!-- OPERADOR: Solo diplomas -->
+                    {% elif current_user.rol == 'operador' %}
+                        <a href="{{ url_for('reportes.dashboard') }}" class="btn btn-outline-light btn-sm me-2"> Dashboard</a>
+                        <a href="{{ url_for('diplomas.activos') }}" class="btn btn-outline-light btn-sm me-2">🎓 Diplomas</a>
+                    
+                    <!-- AUDITOR: Solo lectura -->
+                    {% elif current_user.rol == 'auditor' %}
+                        <a href="{{ url_for('reportes.dashboard') }}" class="btn btn-outline-light btn-sm me-2">📊 Dashboard</a>
+                        <a href="{{ url_for('reportes.auditoria_completa') }}" class="btn btn-outline-light btn-sm me-2">📋 Auditoría</a>
+                        <a href="{{ url_for('diplomas.activos') }}" class="btn btn-outline-light btn-sm me-2">👁️ Ver Diplomas</a>
+                    {% endif %}
+                    
+                    <span class="navbar-text text-white me-3">
+                        {{ current_user.username }} 
+                        <span class="badge bg-{{ 'warning' if current_user.rol == 'admin' else 'info' if current_user.rol == 'auditor' else 'success' }}">
+                            {{ current_user.rol|upper }}
+                        </span>
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">Salir</a>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
