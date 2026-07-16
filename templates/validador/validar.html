@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación de Diploma - SamuCert</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .validador-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        .header-validador {
+            background: #0d6efd;
+            color: white;
+            padding: 30px;
+            border-radius: 15px 15px 0 0;
+            text-align: center;
+        }
+        .estado-activo {
+            background: #198754;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .estado-anulado {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .info-row {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 1.1em;
+            color: #333;
+            margin-top: 5px;
+        }
+        .formato-ejemplo {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="validador-card">
+        <div class="header-validador">
+            <h1>🎓 SamuCert</h1>
+            <p class="mb-0">Sistema de Validación de Diplomas</p>
+        </div>
+        
+        <div class="p-4">
+            {% if error %}
+                {% if error_formato %}
+                    <div class="alert alert-warning">
+                        <h5>⚠️ Formato Inválido</h5>
+                        <p>El código ingresado no cumple con el formato requerido.</p>
+                        <hr>
+                        <p class="mb-0"><strong>Formato correcto:</strong> <span class="formato-ejemplo">INSI-00002</span></p>
+                        <small class="text-muted">4 letras mayúsculas + guion + 5 dígitos</small>
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <h5>❌ Diploma No Encontrado</h5>
+                        <p>{{ error }}</p>
+                        <p class="mb-0"><small>Verifique que el código esté escrito correctamente.</small></p>
+                    </div>
+                {% endif %}
+            {% elif diploma %}
+                <div class="text-center mb-4">
+                    {% if diploma.estado == 'ACTIVO' %}
+                        <div class="estado-activo">✅ DIPLOMA VÁLIDO</div>
+                    {% else %}
+                        <div class="estado-anulado">❌ DIPLOMA ANULADO</div>
+                    {% endif %}
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Consecutivo</div>
+                    <div class="info-value">{{ diploma.consecutivo }}</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Alumno</div>
+                    <div class="info-value">{{ diploma.nombre_alumno }}</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Programa Académico</div>
+                    <div class="info-value">{{ diploma.programa_nombre }}</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">Créditos</div>
+                            <div class="info-value">{{ diploma.creditos }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">Duración</div>
+                            <div class="info-value">{{ diploma.duracion }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Fecha de Emisión</div>
+                    <div class="info-value">{{ diploma.fecha_emision }}</div>
+                </div>
+                
+                <div class="alert alert-info mt-3 mb-0">
+                    <small>
+                        <strong>Código de Verificación:</strong><br>
+                        <code>{{ diploma.codigo_verif }}</code>
+                    </small>
+                </div>
+            {% else %}
+                <!-- Formulario de búsqueda manual -->
+                <h4 class="text-center mb-4">🔍 Buscar Diploma</h4>
+                <p class="text-muted text-center">Ingrese el código del diploma para validar su autenticidad.</p>
+                
+                <form method="GET" action="/validar">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Código del Diploma</label>
+                        <input type="text" name="codigo" class="form-control form-control-lg" 
+                               placeholder="Ej: INSI-00002" 
+                               required 
+                               autofocus 
+                               value="{{ codigo }}"
+                               pattern="[A-Z]{4}-\d{5}"
+                               title="Formato: 4 letras mayúsculas + guion + 5 dígitos (ej: INSI-00002)">
+                        <div class="form-text">
+                            Formato: <span class="formato-ejemplo">XXXX-00000</span><br>
+                            <small class="text-muted">4 letras mayúsculas + guion + 5 dígitos</small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                        🔍 Validar Diploma
+                    </button>
+                </form>
+                
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6>💡 ¿Cómo validar?</h6>
+                    <ul class="mb-0 small">
+                        <li><strong>Opción 1:</strong> Escanee el código QR del diploma con su celular</li>
+                        <li><strong>Opción 2:</strong> Ingrese el consecutivo (ej: INSI-00002) en este formulario</li>
+                        <li><strong>Opción 3:</strong> Copie y pegue el código de verificación completo</li>
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        // Convertir automáticamente a mayúsculas mientras escribe
+        document.querySelector('input[name="codigo"]').addEventListener('input', function(e) {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>

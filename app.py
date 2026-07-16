@@ -5,38 +5,40 @@ from models.database import db, init_db, create_default_users, User
 from routes.auth import auth_bp
 from routes.admin import admin_bp
 from routes.diplomas import diplomas_bp
+from routes.validador import validador_bp
 from routes.public import public_bp
-from routes.reportes import reportes_bp  # <-- NUEVO
+from routes.reportes import reportes_bp
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     app.secret_key = app.config['SECRET_KEY']
-    
+
     db.init_app(app)
-    
+
     login_manager = LoginManager()
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
-    
+
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
-    
+
     with app.app_context():
         init_db()
         create_default_users()
-    
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(diplomas_bp)
+    app.register_blueprint(validador_bp)
     app.register_blueprint(public_bp)
-    app.register_blueprint(reportes_bp)  # <-- NUEVO
-    
+    app.register_blueprint(reportes_bp)
+
     @app.route('/')
     def index():
-        return redirect(url_for('reportes.dashboard'))  # <-- Cambiado a Dashboard
-    
+        return redirect(url_for('reportes.dashboard'))
+
     return app
 
 if __name__ == '__main__':

@@ -27,17 +27,63 @@ def obtener_siguiente_consecutivo(programa_id):
     prog = db.session.execute(text("SELECT abreviatura FROM programas WHERE id = :pid"), {"pid": programa_id}).fetchone()
     return f"{prog[0]}-{nuevo_numero:05d}"
 
-def generar_qr(codigo_verif):
-    """Genera el QR en memoria con la URL dinámica del servidor actual"""
+def generar_qr(codigo_verif, consecutivo=None):
+    """Genera el QR en memoria con el consecutivo visible debajo"""
+    from PIL import Image, ImageDraw, ImageFont
+    import io
+    
+    # Generar el QR
     url_validacion = f"{request.host_url.rstrip('/')}/validar/{codigo_verif}"
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(url_validacion)
     qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    img_io = io.BytesIO()
-    img.save(img_io, 'PNG')
-    img_io.seek(0)
-    return img_io
+    qr_img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Convertir a imagen PIL
+    qr_pil = qr_img.convert('RGB')
+    
+    # Si tenemos el consecutivo, crear imagen compuesta con texto
+    if consecutivo:
+        # Dimensiones
+        qr_width, qr_height = qr_pil.size
+        text_height = 80  # Espacio generoso para texto de 48px  # Más espacio para texto grande  # Espacio para el texto
+        total_height = qr_height + text_height
+        
+        # Crear imagen blanca más grande
+        img_compuesta = Image.new('RGB', (qr_width, total_height), 'white')
+        
+        # Pegar el QR en la parte superior
+        img_compuesta.paste(qr_pil, (0, 0))
+        
+        # Agregar el texto del consecutivo debajo
+        draw = ImageDraw.Draw(img_compuesta)
+        
+        # Intentar usar una fuente más grande, si no, usar la default
+        try:
+            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
+        except:
+            font = ImageFont.load_default()
+        
+        # Centrar el texto
+        text_bbox = draw.textbbox((0, 0), consecutivo, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_x = (qr_width - text_width) // 2
+        text_y = qr_height + 16  # Centrado vertical  # Centrado vertical en el espacio adicional
+        
+        # Dibujar el texto en negro
+        draw.text((text_x, text_y), consecutivo, fill='black', font=font)
+        
+        # Guardar en memoria
+        img_io = io.BytesIO()
+        img_compuesta.save(img_io, 'PNG')
+        img_io.seek(0)
+        return img_io
+    else:
+        # Si no hay consecutivo, devolver solo el QR
+        img_io = io.BytesIO()
+        qr_pil.save(img_io, 'PNG')
+        img_io.seek(0)
+        return img_io
 
 def alumno_existe_en_programa(programa_id, nombre_alumno, exclude_id=None):
     query = "SELECT id FROM diplomas WHERE programa_id = :pid AND LOWER(nombre_alumno) = LOWER(:nombre) AND estado = 'ACTIVO'"
@@ -256,7 +302,7 @@ def descargar_seleccionados():
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
         for d in diplomas:
-            qr_img = generar_qr(d.codigo_verif) # Se genera al vuelo con la URL real del servidor
+            qr_img = generar_qr(d.codigo_verif, d.consecutivo) # Se genera al vuelo con la URL real del servidor
             zf.writestr(f"{d.consecutivo}.png", qr_img.read())
     
     memory_file.seek(0)
@@ -351,7 +397,7 @@ def descargar_zip():
     memory_file = io.BytesIO()
     with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
         for d in diplomas:
-            qr_img = generar_qr(d.codigo_verif)
+            qr_img = generar_qr(d.codigo_verif, d.consecutivo)
             zf.writestr(f"{d.consecutivo}.png", qr_img.read())
     
     memory_file.seek(0)
